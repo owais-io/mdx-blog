@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .prose-custom {
+    @apply max-w-none;
+  }
+  
+  .prose-custom h1 {
+    @apply text-3xl font-bold text-gray-900 mb-4;
+  }
+  
+  .prose-custom h2 {
+    @apply text-2xl font-semibold text-gray-800 mt-8 mb-4;
+  }
+  
+  .prose-custom h3 {
+    @apply text-xl font-semibold text-gray-800 mt-6 mb-3;
+  }
+  
+  .prose-custom p {
+    @apply mb-4 text-gray-700 leading-relaxed;
+  }
+  
+  .prose-custom ul {
+    @apply mb-4 ml-6 list-disc;
+  }
+  
+  .prose-custom li {
+    @apply mb-2 text-gray-700;
+  }
+  
+  .prose-custom blockquote {
+    @apply border-l-4 border-blue-500 pl-4 italic text-gray-600 my-4;
+  }
+  
+  .prose-custom code {
+    @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono;
+  }
+  
+  .prose-custom pre {
+    @apply bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto my-4;
+  }
+  
+  .prose-custom a {
+    @apply text-blue-600 hover:text-blue-800 underline;
+  }
 }
