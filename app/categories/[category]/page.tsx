@@ -27,7 +27,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
   if (posts.length === 0) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">No posts found in "{category}"</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">No posts found in &quot;{category}&quot;</h1>
         <Link 
           href="/categories" 
           className="text-blue-600 hover:text-blue-800 underline"
