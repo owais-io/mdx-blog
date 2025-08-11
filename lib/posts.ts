@@ -1,4 +1,4 @@
-/ lib/posts.ts - Fixed version
+// lib/posts.ts - Fixed version
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
