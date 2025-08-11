@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const ADMIN_PASSWORD = '986041' // Change this!
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
 
 interface Post {
   slug: string

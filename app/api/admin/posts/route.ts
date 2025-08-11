@@ -1,3 +1,4 @@
+// app/api/admin/posts/route.ts - Fixed version
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllPosts, savePost, deletePost } from '../../../../lib/posts'
 
@@ -5,7 +6,8 @@ export async function GET() {
   try {
     const posts = getAllPosts()
     return NextResponse.json(posts)
-  } catch (error) {
+  } catch (err) {
+    console.error('Failed to fetch posts:', err)
     return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 })
   }
 }
@@ -15,7 +17,8 @@ export async function POST(request: NextRequest) {
     const { slug, frontmatter, content } = await request.json()
     savePost(slug, frontmatter, content)
     return NextResponse.json({ message: 'Post created successfully' }, { status: 201 })
-  } catch (error) {
+  } catch (err) {
+    console.error('Failed to create post:', err)
     return NextResponse.json({ error: 'Failed to create post' }, { status: 500 })
   }
 }
@@ -25,7 +28,8 @@ export async function PUT(request: NextRequest) {
     const { slug, frontmatter, content } = await request.json()
     savePost(slug, frontmatter, content)
     return NextResponse.json({ message: 'Post updated successfully' })
-  } catch (error) {
+  } catch (err) {
+    console.error('Failed to update post:', err)
     return NextResponse.json({ error: 'Failed to update post' }, { status: 500 })
   }
 }
@@ -39,7 +43,8 @@ export async function DELETE(request: NextRequest) {
     }
     deletePost(slug)
     return NextResponse.json({ message: 'Post deleted successfully' })
-  } catch (error) {
+  } catch (err) {
+    console.error('Failed to delete post:', err)
     return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 })
   }
 }

@@ -1,3 +1,4 @@
+/ lib/posts.ts - Fixed version
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
@@ -11,6 +12,15 @@ export interface Post {
   tldr?: string[]
   faq?: Array<{ q: string; a: string }>
   content: string
+}
+
+export interface PostFrontmatter {
+  title: string
+  summary: string
+  date: string
+  category: string
+  tldr?: string[]
+  faq?: Array<{ q: string; a: string }>
 }
 
 const postsDirectory = path.join(process.cwd(), 'content/posts')
@@ -68,7 +78,7 @@ export function getAllCategories(): string[] {
   return categories.filter(Boolean)
 }
 
-export function savePost(slug: string, frontmatter: any, content: string): void {
+export function savePost(slug: string, frontmatter: PostFrontmatter, content: string): void {
   const fullPath = path.join(postsDirectory, `${slug}.mdx`)
   
   if (!fs.existsSync(postsDirectory)) {

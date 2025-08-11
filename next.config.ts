@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
   experimental: {
     mdxRs: true,
   },
+  // Optimize for Vercel
+  output: 'standalone',
+  images: {
+    unoptimized: false,
+  },
 };
 
 export default withMDX(nextConfig);
