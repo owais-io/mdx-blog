@@ -2,52 +2,93 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    background-color: theme(colors.gray.50);
+    color: theme(colors.gray.900);
   }
 }
 
 @layer components {
   .prose-custom {
-    @apply max-w-none;
+    max-width: none;
   }
   
   .prose-custom h1 {
-    @apply text-3xl font-bold text-gray-900 mb-4;
+    font-size: theme(fontSize.3xl);
+    font-weight: theme(fontWeight.bold);
+    color: theme(colors.gray.900);
+    margin-bottom: theme(spacing.4);
   }
   
   .prose-custom h2 {
-    @apply text-2xl font-semibold text-gray-800 mt-8 mb-4;
+    font-size: theme(fontSize.2xl);
+    font-weight: theme(fontWeight.semibold);
+    color: theme(colors.gray.800);
+    margin-top: theme(spacing.8);
+    margin-bottom: theme(spacing.4);
   }
   
   .prose-custom h3 {
-    @apply text-xl font-semibold text-gray-800 mt-6 mb-3;
+    font-size: theme(fontSize.xl);
+    font-weight: theme(fontWeight.semibold);
+    color: theme(colors.gray.800);
+    margin-top: theme(spacing.6);
+    margin-bottom: theme(spacing.3);
   }
   
   .prose-custom p {
-    @apply mb-4 text-gray-700 leading-relaxed;
+    margin-bottom: theme(spacing.4);
+    color: theme(colors.gray.700);
+    line-height: theme(lineHeight.relaxed);
   }
   
   .prose-custom ul {
-    @apply mb-4 ml-6 list-disc;
+    margin-bottom: theme(spacing.4);
+    margin-left: theme(spacing.6);
+    list-style-type: disc;
   }
   
   .prose-custom li {
-    @apply mb-2 text-gray-700;
+    margin-bottom: theme(spacing.2);
+    color: theme(colors.gray.700);
   }
   
   .prose-custom blockquote {
-    @apply border-l-4 border-blue-500 pl-4 italic text-gray-600 my-4;
+    border-left-width: theme(borderWidth.4);
+    border-left-color: theme(colors.blue.500);
+    padding-left: theme(spacing.4);
+    font-style: italic;
+    color: theme(colors.gray.600);
+    margin-top: theme(spacing.4);
+    margin-bottom: theme(spacing.4);
   }
   
   .prose-custom code {
-    @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono;
+    background-color: theme(colors.gray.100);
+    padding-left: theme(spacing.2);
+    padding-right: theme(spacing.2);
+    padding-top: theme(spacing.1);
+    padding-bottom: theme(spacing.1);
+    border-radius: theme(borderRadius.DEFAULT);
+    font-size: theme(fontSize.sm);
+    font-family: theme(fontFamily.mono);
   }
   
   .prose-custom pre {
-    @apply bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto my-4;
+    background-color: theme(colors.gray.900);
+    color: theme(colors.green.400);
+    padding: theme(spacing.4);
+    border-radius: theme(borderRadius.lg);
+    overflow-x: auto;
+    margin-top: theme(spacing.4);
+    margin-bottom: theme(spacing.4);
   }
   
   .prose-custom a {
-    @apply text-blue-600 hover:text-blue-800 underline;
+    color: theme(colors.blue.600);
+    text-decoration: underline;
+  }
+  
+  .prose-custom a:hover {
+    color: theme(colors.blue.800);
   }
 }

@@ -1,7 +1,9 @@
+// app/admin/page.tsx - Updated with NextAuth
 'use client'
 import { useState, useEffect } from 'react'
-
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
+import { useSession, signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 interface Post {
   slug: string
@@ -31,11 +33,14 @@ interface FormData {
 }
 
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [password, setPassword] = useState('')
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
   const [editingPost, setEditingPost] = useState<Post | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  
   const [formData, setFormData] = useState<FormData>({
     title: '',
     summary: '',
@@ -46,29 +51,39 @@ export default function AdminPage() {
     q1: '', a1: '', q2: '', a2: '', q3: '', a3: '', q4: '', a4: '', q5: '', a5: ''
   })
 
+  // Redirect if not authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchPosts()
+    if (status === 'loading') return // Still loading
+
+    if (!session?.user?.isAdmin) {
+      router.push('/admin/login')
+      return
     }
-  }, [isAuthenticated])
+
+    fetchPosts()
+  }, [session, status, router])
 
   const fetchPosts = async () => {
     try {
+      setIsLoading(true)
       const response = await fetch('/api/admin/posts')
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch posts')
+      }
+      
       const data = await response.json()
       setPosts(data)
     } catch (error) {
       console.error('Error fetching posts:', error)
+      setError('Failed to load posts')
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true)
-    } else {
-      alert('Invalid password')
-    }
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/admin/login' })
   }
 
   const generateSlug = (title: string) => {
@@ -81,6 +96,7 @@ export default function AdminPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
     
     const slug = editingPost ? editingPost.slug : generateSlug(formData.title)
     
@@ -122,11 +138,14 @@ export default function AdminPage() {
         resetForm()
         fetchPosts()
       } else {
-        alert('Error saving post')
+        const errorData = await response.json()
+        alert(`Error saving post: ${errorData.error}`)
       }
     } catch (error) {
       console.error('Error saving post:', error)
       alert('Error saving post')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -157,64 +176,88 @@ export default function AdminPage() {
   }
 
   const handleDelete = async (slug: string) => {
-    if (confirm('Are you sure you want to delete this post?')) {
-      try {
-        const response = await fetch(`/api/admin/posts?slug=${slug}`, {
-          method: 'DELETE',
-        })
-        if (response.ok) {
-          alert('Post deleted successfully!')
-          fetchPosts()
-        } else {
-          alert('Error deleting post')
-        }
-      } catch (error) {
-        console.error('Error deleting post:', error)
-        alert('Error deleting post')
+    if (!confirm('Are you sure you want to delete this post?')) return
+    
+    try {
+      const response = await fetch(`/api/admin/posts?slug=${slug}`, {
+        method: 'DELETE',
+      })
+      
+      if (response.ok) {
+        alert('Post deleted successfully!')
+        fetchPosts()
+      } else {
+        const errorData = await response.json()
+        alert(`Error deleting post: ${errorData.error}`)
       }
+    } catch (error) {
+      console.error('Error deleting post:', error)
+      alert('Error deleting post')
     }
   }
 
-  if (!isAuthenticated) {
+  // Loading state
+  if (status === 'loading' || (isLoading && posts.length === 0)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Admin Login</h1>
-          <form onSubmit={handleLogin}>
-            <input
-              type="password"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
-            />
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
-            >
-              Login
-            </button>
-          </form>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
       </div>
     )
   }
 
+  // Not authenticated
+  if (!session?.user?.isAdmin) {
+    return null // Will be redirected by useEffect
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-        <button
-          onClick={() => {
-            setShowForm(true)
-            setEditingPost(null)
-            resetForm()
-          }}
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-        >
-          Create New Post
-        </button>
+        <div className="flex items-center space-x-4">
+          <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
+          <div className="text-sm text-gray-600">
+            Welcome, {session.user.name}
+          </div>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            {session.user.image && (
+              <Image
+                src={session.user.image}
+                alt={session.user.name || 'User'}
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+            )}
+            <span className="text-sm text-gray-700">{session.user.email}</span>
+          </div>
+          <button
+            onClick={() => {
+              setShowForm(true)
+              setEditingPost(null)
+              resetForm()
+            }}
+            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+            disabled={isLoading}
+          >
+            Create New Post
+          </button>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Posts List */}
       {!showForm && (
@@ -254,12 +297,14 @@ export default function AdminPage() {
                     <button
                       onClick={() => handleEdit(post)}
                       className="text-indigo-600 hover:text-indigo-900 mr-4"
+                      disabled={isLoading}
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(post.slug)}
                       className="text-red-600 hover:text-red-900"
+                      disabled={isLoading}
                     >
                       Delete
                     </button>
@@ -271,7 +316,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Form */}
+      {/* Form - Same as before but with loading states */}
       {showForm && (
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center mb-6">
@@ -285,6 +330,7 @@ export default function AdminPage() {
                 resetForm()
               }}
               className="text-gray-500 hover:text-gray-700"
+              disabled={isLoading}
             >
               Cancel
             </button>
@@ -302,6 +348,7 @@ export default function AdminPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -315,6 +362,7 @@ export default function AdminPage() {
                   value={formData.category}
                   onChange={(e) => setFormData({...formData, category: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -328,6 +376,7 @@ export default function AdminPage() {
                   value={formData.date}
                   onChange={(e) => setFormData({...formData, date: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -342,6 +391,7 @@ export default function AdminPage() {
                 onChange={(e) => setFormData({...formData, summary: e.target.value})}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isLoading}
               />
             </div>
 
@@ -359,6 +409,7 @@ export default function AdminPage() {
                       value={formData[`tldr${num}` as keyof FormData] as string}
                       onChange={(e) => setFormData({...formData, [`tldr${num}`]: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={isLoading}
                     />
                   </div>
                 ))}
@@ -380,6 +431,7 @@ export default function AdminPage() {
                         value={formData[`q${num}` as keyof FormData] as string}
                         onChange={(e) => setFormData({...formData, [`q${num}`]: e.target.value})}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={isLoading}
                       />
                     </div>
                     <div>
@@ -391,6 +443,7 @@ export default function AdminPage() {
                         onChange={(e) => setFormData({...formData, [`a${num}`]: e.target.value})}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -410,15 +463,17 @@ export default function AdminPage() {
                 rows={20}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                 placeholder="Write your article content in MDX format here..."
+                disabled={isLoading}
               />
             </div>
 
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading}
               >
-                {editingPost ? 'Update Post' : 'Create Post'}
+                {isLoading ? 'Saving...' : (editingPost ? 'Update Post' : 'Create Post')}
               </button>
             </div>
           </form>
@@ -427,3 +482,4 @@ export default function AdminPage() {
     </div>
   )
 }
+
