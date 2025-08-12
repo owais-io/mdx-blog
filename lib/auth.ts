@@ -14,14 +14,14 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async signIn({ user, account: _account, profile: _profile }) {
+    async signIn({ user }) {
       // Only allow specific emails to sign in
       if (user.email && ADMIN_EMAILS.includes(user.email)) {
         return true
       }
       return false // Deny access
     },
-    async session({ session, token: _token }) {
+    async session({ session }) {
       // Add admin flag to session
       if (session.user?.email && ADMIN_EMAILS.includes(session.user.email)) {
         session.user.isAdmin = true
