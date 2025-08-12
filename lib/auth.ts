@@ -1,4 +1,4 @@
-// lib/auth.ts - NextAuth configuration
+// lib/auth.ts - NextAuth configuration (Google Auth only)
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import type { NextAuthOptions } from "next-auth"
@@ -14,14 +14,14 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account: _account, profile: _profile }) {
       // Only allow specific emails to sign in
       if (user.email && ADMIN_EMAILS.includes(user.email)) {
         return true
       }
       return false // Deny access
     },
-    async session({ session, token }) {
+    async session({ session, token: _token }) {
       // Add admin flag to session
       if (session.user?.email && ADMIN_EMAILS.includes(session.user.email)) {
         session.user.isAdmin = true
